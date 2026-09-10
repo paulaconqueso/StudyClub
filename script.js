@@ -11,6 +11,13 @@ let selectedAppointment = null;
 
 
 // -----------------------------
+// DATOS DE LAS CITAS
+// -----------------------------
+
+const appointmentData = {};
+
+
+// -----------------------------
 // FECHAS
 // -----------------------------
 
@@ -84,8 +91,28 @@ function updateWeek() {
             formattedDate;
 
 
-        dayElement.dataset.appointmentId =
+        const appointmentId =
             formattedDate + "_20:10";
+
+
+        dayElement.dataset.appointmentId =
+            appointmentId;
+
+
+        // Crear los datos de la cita si todavía no existen
+
+        if (!appointmentData[appointmentId]) {
+
+            appointmentData[appointmentId] = {
+
+                name: "Disponible",
+
+                participants: []
+            };
+        }
+
+
+        updateAppointmentDisplay(dayElement);
 
     });
 
@@ -102,6 +129,87 @@ function updateWeek() {
         formatDate(monday) +
         " al " +
         formatDate(thursday);
+}
+
+
+// -----------------------------
+// ACTUALIZAR TARJETA
+// -----------------------------
+
+function updateAppointmentDisplay(dayElement) {
+
+    const appointmentId =
+        dayElement.dataset.appointmentId;
+
+
+    const appointment =
+        appointmentData[appointmentId];
+
+
+    const countElement =
+        dayElement.querySelector(
+            ".participant-count"
+        );
+
+
+    const placesElement =
+        dayElement.querySelector(
+            ".places"
+        );
+
+
+    const button =
+        dayElement.querySelector(
+            ".join-button"
+        );
+
+
+    const count =
+        appointment.participants.length;
+
+
+    // -----------------------------
+    // CONTADOR
+    // -----------------------------
+
+    countElement.textContent =
+        count + " / 6";
+
+
+    // -----------------------------
+    // PLAZAS DISPONIBLES
+    // -----------------------------
+
+    const places =
+        6 - count;
+
+
+    if (places > 0) {
+
+        placesElement.textContent =
+            places + " plazas disponibles";
+
+
+        button.textContent =
+            "Apuntarme";
+
+
+        button.disabled =
+            false;
+
+    } else {
+
+        placesElement.textContent =
+            "Cita completa";
+
+
+        button.textContent =
+            "Completa";
+
+
+        button.disabled =
+            true;
+    }
 }
 
 
@@ -249,15 +357,109 @@ bookingForm.addEventListener(
                 .trim();
 
 
-        alert(
-            "Formulario preparado.\n\n" +
-            "Próximamente se conectará con Google Sheets."
+        const appointment =
+            appointmentData[
+                selectedAppointment.id
+            ];
+
+
+        // -----------------------------
+        // COMPROBAR PLAZAS
+        // -----------------------------
+
+        if (appointment.participants.length >= 6) {
+
+            alert(
+                "Lo sentimos, esta cita está completa."
+            );
+
+            closeBooking();
+
+            return;
+        }
+
+
+        // -----------------------------
+        // PRIMER TEMA
+        // -----------------------------
+
+        if (appointment.participants.length === 0) {
+
+            appointment.name =
+                topic;
+        }
+
+
+        // -----------------------------
+        // GUARDAR PARTICIPANTE
+        // -----------------------------
+
+        appointment.participants.push({
+
+            name: studentName,
+
+            email: email,
+
+            phone: phone,
+
+            topic: topic
+        });
+
+
+        // -----------------------------
+        // ACTUALIZAR TARJETA
+        // -----------------------------
+
+        const dayElement =
+            document.querySelector(
+                '.day[data-appointment-id="' +
+                selectedAppointment.id +
+                '"]'
+            );
+
+
+        updateAppointmentDisplay(
+            dayElement
         );
 
+
+        // -----------------------------
+        // GUARDAR DATOS DE CONFIRMACIÓN
+        // -----------------------------
+
+        const confirmedDate =
+            selectedAppointment.date;
+
+
+        const confirmedTime =
+            selectedAppointment.time;
+
+
+        // -----------------------------
+        // CERRAR
+        // -----------------------------
 
         bookingForm.reset();
 
         closeBooking();
+
+
+        // -----------------------------
+        // CONFIRMACIÓN
+        // -----------------------------
+
+        alert(
+            "¡Reserva realizada!\n\n" +
+            confirmedDate +
+            "\n" +
+            confirmedTime +
+            "\n\n" +
+            "Alumno: " +
+            studentName +
+            "\n" +
+            "Tema: " +
+            topic
+        );
     }
 );
 
