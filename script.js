@@ -1,3 +1,6 @@
+const APPS_SCRIPT_URL =
+    "https://script.google.com/macros/s/AKfycbyCW2UnABFqozgRKgkTvjc-KX5S-otNG6pM7e8G9IGjf10Cs1p-GsL4UIo2PCwUqPvU_g/exec";
+
 const modal = document.getElementById("bookingModal");
 const bookingForm = document.getElementById("bookingForm");
 const closeModalButton = document.getElementById("closeModal");
@@ -8,11 +11,6 @@ const weekTitle = document.getElementById("weekTitle");
 
 let currentWeekOffset = 0;
 let selectedAppointment = null;
-
-
-// -----------------------------
-// DATOS DE LAS CITAS
-// -----------------------------
 
 const appointmentData = {};
 
@@ -26,12 +24,15 @@ function getMonday(offset) {
     const today = new Date();
     const day = today.getDay();
 
-    const difference = day === 0 ? -6 : 1 - day;
+    const difference =
+        day === 0 ? -6 : 1 - day;
 
     const monday = new Date(today);
 
     monday.setDate(
-        today.getDate() + difference + (offset * 7)
+        today.getDate() +
+        difference +
+        (offset * 7)
     );
 
     monday.setHours(0, 0, 0, 0);
@@ -42,9 +43,14 @@ function getMonday(offset) {
 
 function formatDate(date) {
 
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
+    const day =
+        String(date.getDate()).padStart(2, "0");
+
+    const month =
+        String(date.getMonth() + 1).padStart(2, "0");
+
+    const year =
+        date.getFullYear();
 
     return day + "/" + month + "/" + year;
 }
@@ -56,9 +62,11 @@ function formatDate(date) {
 
 function updateWeek() {
 
-    const monday = getMonday(currentWeekOffset);
+    const monday =
+        getMonday(currentWeekOffset);
 
-    const days = document.querySelectorAll(".day");
+    const days =
+        document.querySelectorAll(".day");
 
     const dayNames = [
         "Lunes",
@@ -70,21 +78,26 @@ function updateWeek() {
 
     days.forEach(function(dayElement, index) {
 
-        const date = new Date(monday);
+        const date =
+            new Date(monday);
 
         date.setDate(
             monday.getDate() + index
         );
 
 
-        const formattedDate = formatDate(date);
+        const formattedDate =
+            formatDate(date);
+
 
         const title =
             dayElement.querySelector(".day-title");
 
 
         title.textContent =
-            dayNames[index] + " " + formattedDate;
+            dayNames[index] +
+            " " +
+            formattedDate;
 
 
         dayElement.dataset.date =
@@ -92,14 +105,13 @@ function updateWeek() {
 
 
         const appointmentId =
-            formattedDate + "_20:10";
+            formattedDate +
+            "_20:10";
 
 
         dayElement.dataset.appointmentId =
             appointmentId;
 
-
-        // Crear los datos de la cita si todavía no existen
 
         if (!appointmentData[appointmentId]) {
 
@@ -112,12 +124,15 @@ function updateWeek() {
         }
 
 
-        updateAppointmentDisplay(dayElement);
+        updateAppointmentDisplay(
+            dayElement
+        );
 
     });
 
 
-    const thursday = new Date(monday);
+    const thursday =
+        new Date(monday);
 
     thursday.setDate(
         monday.getDate() + 3
@@ -146,6 +161,12 @@ function updateAppointmentDisplay(dayElement) {
         appointmentData[appointmentId];
 
 
+    const nameElement =
+        dayElement.querySelector(
+            ".appointment-name"
+        );
+
+
     const countElement =
         dayElement.querySelector(
             ".participant-count"
@@ -168,17 +189,21 @@ function updateAppointmentDisplay(dayElement) {
         appointment.participants.length;
 
 
-    // -----------------------------
-    // CONTADOR
-    // -----------------------------
+    if (count === 0) {
+
+        nameElement.textContent =
+            "Disponible";
+
+    } else {
+
+        nameElement.textContent =
+            appointment.name;
+    }
+
 
     countElement.textContent =
         count + " / 6";
 
-
-    // -----------------------------
-    // PLAZAS DISPONIBLES
-    // -----------------------------
 
     const places =
         6 - count;
@@ -187,12 +212,11 @@ function updateAppointmentDisplay(dayElement) {
     if (places > 0) {
 
         placesElement.textContent =
-            places + " plazas disponibles";
-
+            places +
+            " plazas disponibles";
 
         button.textContent =
             "Apuntarme";
-
 
         button.disabled =
             false;
@@ -202,14 +226,104 @@ function updateAppointmentDisplay(dayElement) {
         placesElement.textContent =
             "Cita completa";
 
-
         button.textContent =
             "Completa";
-
 
         button.disabled =
             true;
     }
+}
+
+
+// -----------------------------
+// LEER CITAS DE GOOGLE SHEETS
+// -----------------------------
+
+function loadAppointmentsFromGoogle() {
+
+    const url =
+        APPS_SCRIPT_URL +
+        "?action=getAppointments";
+
+
+    fetch(url)
+
+        .then(function(response) {
+
+            return response.json();
+        })
+
+        .then(function(appointments) {
+
+            appointments.forEach(
+                function(appointment) {
+
+                    const appointmentId =
+                        String(appointment.id);
+
+
+                    appointmentData[
+                        appointmentId
+                    ] = {
+
+                        name:
+                            appointment.nombre ||
+                            "Disponible",
+
+                        participants:
+                            createParticipants(
+                                Number(
+                                    appointment.participantes
+                                ) || 0
+                            )
+                    };
+
+
+                    const dayElement =
+                        document.querySelector(
+                            '.day[data-appointment-id="' +
+                            appointmentId +
+                            '"]'
+                        );
+
+
+                    if (dayElement) {
+
+                        updateAppointmentDisplay(
+                            dayElement
+                        );
+                    }
+                }
+            );
+
+        })
+
+        .catch(function(error) {
+
+            console.error(
+                "Error al cargar las citas:",
+                error
+            );
+        });
+}
+
+
+// -----------------------------
+// CREAR PARTICIPANTES TEMPORALES
+// -----------------------------
+
+function createParticipants(count) {
+
+    const participants = [];
+
+
+    for (let i = 0; i < count; i++) {
+
+        participants.push({});
+    }
+
+
+    return participants;
 }
 
 
@@ -224,6 +338,8 @@ previousWeekButton.addEventListener(
         currentWeekOffset--;
 
         updateWeek();
+
+        loadAppointmentsFromGoogle();
     }
 );
 
@@ -235,6 +351,8 @@ nextWeekButton.addEventListener(
         currentWeekOffset++;
 
         updateWeek();
+
+        loadAppointmentsFromGoogle();
     }
 );
 
@@ -247,11 +365,14 @@ function openBooking(dayElement) {
 
     selectedAppointment = {
 
-        date: dayElement.dataset.date,
+        date:
+            dayElement.dataset.date,
 
-        time: "20:10 - 20:40",
+        time:
+            "20:10 - 20:40",
 
-        id: dayElement.dataset.appointmentId
+        id:
+            dayElement.dataset.appointmentId
     };
 
 
@@ -363,11 +484,9 @@ bookingForm.addEventListener(
             ];
 
 
-        // -----------------------------
-        // COMPROBAR PLAZAS
-        // -----------------------------
-
-        if (appointment.participants.length >= 6) {
+        if (
+            appointment.participants.length >= 6
+        ) {
 
             alert(
                 "Lo sentimos, esta cita está completa."
@@ -379,36 +498,30 @@ bookingForm.addEventListener(
         }
 
 
-        // -----------------------------
-        // PRIMER TEMA
-        // -----------------------------
-
-        if (appointment.participants.length === 0) {
+        if (
+            appointment.participants.length === 0
+        ) {
 
             appointment.name =
                 topic;
         }
 
 
-        // -----------------------------
-        // GUARDAR PARTICIPANTE
-        // -----------------------------
-
         appointment.participants.push({
 
-            name: studentName,
+            name:
+                studentName,
 
-            email: email,
+            email:
+                email,
 
-            phone: phone,
+            phone:
+                phone,
 
-            topic: topic
+            topic:
+                topic
         });
 
-
-        // -----------------------------
-        // ACTUALIZAR TARJETA
-        // -----------------------------
 
         const dayElement =
             document.querySelector(
@@ -423,10 +536,6 @@ bookingForm.addEventListener(
         );
 
 
-        // -----------------------------
-        // GUARDAR DATOS DE CONFIRMACIÓN
-        // -----------------------------
-
         const confirmedDate =
             selectedAppointment.date;
 
@@ -435,18 +544,10 @@ bookingForm.addEventListener(
             selectedAppointment.time;
 
 
-        // -----------------------------
-        // CERRAR
-        // -----------------------------
-
         bookingForm.reset();
 
         closeBooking();
 
-
-        // -----------------------------
-        // CONFIRMACIÓN
-        // -----------------------------
 
         alert(
             "¡Reserva realizada!\n\n" +
@@ -469,3 +570,5 @@ bookingForm.addEventListener(
 // -----------------------------
 
 updateWeek();
+
+loadAppointmentsFromGoogle();
