@@ -11,10 +11,18 @@ let selectedAppointment = null;
 
 
 // -----------------------------
+// DATOS TEMPORALES
+// -----------------------------
+
+const appointmentData = {};
+
+
+// -----------------------------
 // FECHAS
 // -----------------------------
 
 function getMonday(offset = 0) {
+
     const today = new Date();
 
     const day = today.getDay();
@@ -33,6 +41,7 @@ function getMonday(offset = 0) {
 
 
 function formatDate(date) {
+
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const year = date.getFullYear();
@@ -40,6 +49,10 @@ function formatDate(date) {
     return `${day}/${month}/${year}`;
 }
 
+
+// -----------------------------
+// ACTUALIZAR SEMANA
+// -----------------------------
 
 function updateWeek() {
 
@@ -62,13 +75,32 @@ function updateWeek() {
             monday.getDate() + index
         );
 
+        const formattedDate = formatDate(date);
+
         const title = dayElement.querySelector(".day-title");
 
         title.textContent =
-            `${dayNames[index]} ${formatDate(date)}`;
+            `${dayNames[index]} ${formattedDate}`;
 
         dayElement.dataset.date =
-            formatDate(date);
+            formattedDate;
+
+        const appointmentId =
+            `${formattedDate}_20:10`;
+
+        dayElement.dataset.appointmentId =
+            appointmentId;
+
+        if (!appointmentData[appointmentId]) {
+
+            appointmentData[appointmentId] = {
+                name: "Disponible",
+                participants: []
+            };
+
+        }
+
+        updateAppointmentDisplay(dayElement);
     });
 
 
@@ -84,25 +116,140 @@ function updateWeek() {
 
 
 // -----------------------------
+// ACTUALIZAR TARJETA
+// -----------------------------
+
+function updateAppointmentDisplay(dayElement) {
+
+    const appointmentId =
+        dayElement.dataset.appointmentId;
+
+    const appointment =
+        appointmentData[appointmentId];
+
+    const nameElement =
+        dayElement.querySelector(".appointment-name");
+
+    const countElement =
+        dayElement.querySelector(".participant-count");
+
+    const placesElement =
+        dayElement.querySelector(".places");
+
+    const button =
+        dayElement.querySelector(".join-button");
+
+
+    const count =
+        appointment.participants.length;
+
+
+    // Nombre de la cita
+
+    if (count === 0) {
+
+        nameElement.textContent =
+            "Disponible";
+
+    } else {
+
+        nameElement.textContent =
+            appointment.name;
+    }
+
+
+    // Participantes
+
+    countElement.textContent =
+        `${count} / 6`;
+
+
+    // Plazas
+
+    const places =
+        6 - count;
+
+    if (places > 0) {
+
+        placesElement.textContent =
+            `${places} plazas disponibles`;
+
+        button.textContent =
+            "Apuntarme";
+
+        button.disabled = false;
+
+    } else {
+
+        placesElement.textContent =
+            "Cita completa";
+
+        button.textContent =
+            "Completa";
+
+        button.disabled = true;
+    }
+
+
+    // Lista de nombres
+
+    let participantList =
+        dayElement.querySelector(".participant-list");
+
+    if (!participantList) {
+
+        participantList =
+            document.createElement("div");
+
+        participantList.className =
+            "participant-list";
+
+        dayElement
+            .querySelector(".appointment")
+            .appendChild(participantList);
+    }
+
+
+    participantList.innerHTML = "";
+
+
+    appointment.participants.forEach(function(participant) {
+
+        const name =
+            document.createElement("div");
+
+        name.textContent =
+            participant.name;
+
+        participantList.appendChild(name);
+    });
+}
+
+
+// -----------------------------
 // NAVEGACIÓN
 // -----------------------------
 
-previousWeekButton.addEventListener("click", function() {
+previousWeekButton.addEventListener(
+    "click",
+    function() {
 
-    currentWeekOffset--;
+        currentWeekOffset--;
 
-    updateWeek();
+        updateWeek();
+    }
+);
 
-});
 
+nextWeekButton.addEventListener(
+    "click",
+    function() {
 
-nextWeekButton.addEventListener("click", function() {
+        currentWeekOffset++;
 
-    currentWeekOffset++;
-
-    updateWeek();
-
-});
+        updateWeek();
+    }
+);
 
 
 // -----------------------------
@@ -111,15 +258,24 @@ nextWeekButton.addEventListener("click", function() {
 
 function openBooking(dayElement) {
 
-    const date = dayElement.dataset.date;
+    const date =
+        dayElement.dataset.date;
+
+    const appointmentId =
+        dayElement.dataset.appointmentId;
 
     selectedAppointment = {
+        id: appointmentId,
         date: date,
         time: "20:10 - 20:40"
     };
 
-    document.getElementById("selectedAppointment").textContent =
+
+    document.getElementById(
+        "selectedAppointment"
+    ).textContent =
         `${date} · 20:10 - 20:40`;
+
 
     modal.classList.remove("hidden");
 }
@@ -148,9 +304,9 @@ window.addEventListener(
     function(event) {
 
         if (event.target === modal) {
+
             closeBooking();
         }
-
     }
 );
 
@@ -159,21 +315,21 @@ window.addEventListener(
 // BOTONES APUNTARME
 // -----------------------------
 
-document.querySelectorAll(".join-button").forEach(button => {
+document
+    .querySelectorAll(".join-button")
+    .forEach(function(button) {
 
-    button.addEventListener(
-        "click",
-        function() {
+        button.addEventListener(
+            "click",
+            function() {
 
-            const dayElement =
-                button.closest(".day");
+                const dayElement =
+                    button.closest(".day");
 
-            openBooking(dayElement);
-
-        }
-    );
-
-});
+                openBooking(dayElement);
+            }
+        );
+    });
 
 
 // -----------------------------
@@ -186,40 +342,85 @@ bookingForm.addEventListener(
 
         event.preventDefault();
 
+
         const studentName =
-            document.getElementById("studentName").value;
+            document.getElementById("studentName").value.trim();
 
         const email =
-            document.getElementById("email").value;
+            document.getElementById("email").value.trim();
 
         const phone =
-            document.getElementById("phone").value;
+            document.getElementById("phone").value.trim();
 
         const topic =
-            document.getElementById("topic").value;
+            document.getElementById("topic").value.trim();
 
 
-        alert(
-            `Reserva preparada para ${studentName}\n\n` +
-            `${selectedAppointment.date}\n` +
-            `${selectedAppointment.time}\n\n` +
-            `Tema: ${topic}`
-        );
+        const appointment =
+            appointmentData[selectedAppointment.id];
 
 
-        console.log({
-            date: selectedAppointment.date,
-            time: selectedAppointment.time,
-            studentName: studentName,
+        // Comprobar plazas
+
+        if (appointment.participants.length >= 6) {
+
+            alert(
+                "Lo sentimos, esta cita está completa."
+            );
+
+            closeBooking();
+
+            return;
+        }
+
+
+        // Si es el primer alumno,
+        // su tema se convierte en el nombre de la cita
+
+        if (appointment.participants.length === 0) {
+
+            appointment.name = topic;
+        }
+
+
+        // Añadir participante
+
+        appointment.participants.push({
+
+            name: studentName,
             email: email,
             phone: phone,
             topic: topic
         });
 
 
+        // Buscar tarjeta correspondiente
+
+        const dayElement =
+            document.querySelector(
+                `.day[data-appointment-id="${selectedAppointment.id}"]`
+            );
+
+
+        updateAppointmentDisplay(dayElement);
+
+
+        // Cerrar formulario
+
         bookingForm.reset();
 
         closeBooking();
+
+
+        // Mensaje de confirmación
+
+        alert(
+            `¡Reserva realizada!\n\n` +
+            `${selectedAppointment.date}\n` +
+            `${selectedAppointment.time}\n\n` +
+            `Alumno: ${studentName}\n` +
+            `Tema: ${topic}`
+        );
     }
 );
 
