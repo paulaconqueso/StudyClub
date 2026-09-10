@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyClub - Reserva tu cita</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">StudyClub</div>
+        <div class="subtitle">Reserva tu sesión de estudio</div>
+    </header>
+
+    <main>
+
+        <section class="welcome">
+            <h1>Horario semanal</h1>
+            <p>Elige una cita y únete a una sesión de estudio.</p>
+        </section>
+
+        <section class="week-navigation">
+            <button id="previousWeek">‹ Semana anterior</button>
+
+            <h2 id="weekTitle">Semana actual</h2>
+
+            <button id="nextWeek">Semana siguiente ›</button>
+        </section>
+
+        <section class="schedule">
+
+            <div class="day">
+                <h3>Lunes</h3>
+
+                <div class="appointment available">
+                    <div class="time">20:10 - 20:40</div>
+                    <div class="appointment-name">Disponible</div>
+                    <div class="participants">0 / 6 participantes</div>
+                    <button class="join-button">Apuntarme</button>
+                </div>
+            </div>
+
+            <div class="day">
+                <h3>Martes</h3>
+
+                <div class="appointment available">
+                    <div class="time">20:10 - 20:40</div>
+                    <div class="appointment-name">Disponible</div>
+                    <div class="participants">0 / 6 participantes</div>
+                    <button class="join-button">Apuntarme</button>
+                </div>
+            </div>
+
+            <div class="day">
+                <h3>Miércoles</h3>
+
+                <div class="appointment available">
+                    <div class="time">20:10 - 20:40</div>
+                    <div class="appointment-name">Disponible</div>
+                    <div class="participants">0 / 6 participantes</div>
+                    <button class="join-button">Apuntarme</button>
+                </div>
+            </div>
+
+            <div class="day">
+                <h3>Jueves</h3>
+
+                <div class="appointment available">
+                    <div class="time">20:10 - 20:40</div>
+                    <div class="appointment-name">Disponible</div>
+                    <div class="participants">0 / 6 participantes</div>
+                    <button class="join-button">Apuntarme</button>
+                </div>
+            </div>
+
+        </section>
+
+        <div id="bookingModal" class="modal hidden">
+
+            <div class="modal-content">
+
+                <button class="close-button" id="closeModal">×</button>
+
+                <h2>Únete a la cita</h2>
+
+                <p id="selectedAppointment"></p>
+
+                <form id="bookingForm">
+
+                    <label for="studentName">
+                        Nombre del alumno
+                    </label>
+
+                    <input
+                        type="text"
+                        id="studentName"
+                        required
+                    >
+
+                    <label for="email">
+                        Correo electrónico
+                    </label>
+
+                    <input
+                        type="email"
+                        id="email"
+                        required
+                    >
+
+                    <label for="phone">
+                        Número de teléfono
+                    </label>
+
+                    <input
+                        type="tel"
+                        id="phone"
+                        required
+                    >
+
+                    <label for="topic">
+                        Tema de estudio
+                    </label>
+
+                    <input
+                        type="text"
+                        id="topic"
+                        placeholder="Ej. Present Simple"
+                        required
+                    >
+
+                    <button type="submit" class="confirm-button">
+                        Confirmar reserva
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <footer>
+        <p>StudyClub · Sesiones de apoyo y estudio</p>
+    </footer>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
