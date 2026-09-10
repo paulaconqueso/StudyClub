@@ -15,21 +15,26 @@ let selectedAppointment = null;
 const appointmentData = {};
 
 
-// -----------------------------
+// ------------------------------------
 // FECHAS
-// -----------------------------
+// ------------------------------------
 
 function getMonday(offset) {
 
     const today = new Date();
     const day = today.getDay();
 
-    const difference = day === 0 ? -6 : 1 - day;
+    const difference =
+        day === 0
+            ? -6
+            : 1 - day;
 
     const monday = new Date(today);
 
     monday.setDate(
-        today.getDate() + difference + (offset * 7)
+        today.getDate() +
+        difference +
+        (offset * 7)
     );
 
     monday.setHours(0, 0, 0, 0);
@@ -40,23 +45,30 @@ function getMonday(offset) {
 
 function formatDate(date) {
 
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const year = date.getFullYear();
+    const day =
+        String(date.getDate()).padStart(2, "0");
+
+    const month =
+        String(date.getMonth() + 1).padStart(2, "0");
+
+    const year =
+        date.getFullYear();
 
     return day + "/" + month + "/" + year;
 }
 
 
-// -----------------------------
+// ------------------------------------
 // ACTUALIZAR SEMANA
-// -----------------------------
+// ------------------------------------
 
 function updateWeek() {
 
-    const monday = getMonday(currentWeekOffset);
+    const monday =
+        getMonday(currentWeekOffset);
 
-    const days = document.querySelectorAll(".day");
+    const days =
+        document.querySelectorAll(".day");
 
     const dayNames = [
         "Lunes",
@@ -68,21 +80,26 @@ function updateWeek() {
 
     days.forEach(function(dayElement, index) {
 
-        const date = new Date(monday);
+        const date =
+            new Date(monday);
 
         date.setDate(
             monday.getDate() + index
         );
 
 
-        const formattedDate = formatDate(date);
+        const formattedDate =
+            formatDate(date);
+
 
         const title =
             dayElement.querySelector(".day-title");
 
 
         title.textContent =
-            dayNames[index] + " " + formattedDate;
+            dayNames[index] +
+            " " +
+            formattedDate;
 
 
         dayElement.dataset.date =
@@ -104,6 +121,7 @@ function updateWeek() {
                 name: "Disponible",
 
                 participants: []
+
             };
         }
 
@@ -113,7 +131,9 @@ function updateWeek() {
     });
 
 
-    const thursday = new Date(monday);
+    const thursday =
+        new Date(monday);
+
 
     thursday.setDate(
         monday.getDate() + 3
@@ -128,34 +148,41 @@ function updateWeek() {
 }
 
 
-// -----------------------------
-// ACTUALIZAR TARJETA
-// -----------------------------
+// ------------------------------------
+// MOSTRAR CITA
+// ------------------------------------
 
 function updateAppointmentDisplay(dayElement) {
 
     const appointmentId =
         dayElement.dataset.appointmentId;
 
-
     const appointment =
         appointmentData[appointmentId];
 
 
     const nameElement =
-        dayElement.querySelector(".appointment-name");
+        dayElement.querySelector(
+            ".appointment-name"
+        );
 
 
     const countElement =
-        dayElement.querySelector(".participant-count");
+        dayElement.querySelector(
+            ".participant-count"
+        );
 
 
     const placesElement =
-        dayElement.querySelector(".places");
+        dayElement.querySelector(
+            ".places"
+        );
 
 
     const button =
-        dayElement.querySelector(".join-button");
+        dayElement.querySelector(
+            ".join-button"
+        );
 
 
     const count =
@@ -185,7 +212,8 @@ function updateAppointmentDisplay(dayElement) {
     if (places > 0) {
 
         placesElement.textContent =
-            places + " plazas disponibles";
+            places +
+            " plazas disponibles";
 
         button.textContent =
             "Apuntarme";
@@ -207,25 +235,18 @@ function updateAppointmentDisplay(dayElement) {
 }
 
 
-// -----------------------------
-// LEER CITAS DE GOOGLE SHEETS
-// -----------------------------
+// ------------------------------------
+// CARGAR CITAS DESDE GOOGLE
+// ------------------------------------
 
 function loadAppointmentsFromGoogle() {
 
-    const url =
-        APPS_SCRIPT_URL +
-        "?action=getAppointments";
+    const callbackName =
+        "studyClubAppointmentsCallback";
 
 
-    fetch(url)
-
-        .then(function(response) {
-
-            return response.json();
-        })
-
-        .then(function(appointments) {
+    window[callbackName] =
+        function(appointments) {
 
             appointments.forEach(
                 function(appointment) {
@@ -234,9 +255,7 @@ function loadAppointmentsFromGoogle() {
                         String(appointment.id);
 
 
-                    appointmentData[
-                        appointmentId
-                    ] = {
+                    appointmentData[appointmentId] = {
 
                         name:
                             appointment.nombre ||
@@ -268,28 +287,64 @@ function loadAppointmentsFromGoogle() {
                 }
             );
 
-        })
 
-        .catch(function(error) {
+            delete window[callbackName];
+
+            const oldScript =
+                document.getElementById(
+                    "studyClubDataScript"
+                );
+
+            if (oldScript) {
+                oldScript.remove();
+            }
+        };
+
+
+    const script =
+        document.createElement("script");
+
+
+    script.id =
+        "studyClubDataScript";
+
+
+    script.src =
+        APPS_SCRIPT_URL +
+        "?action=getAppointments" +
+        "&callback=" +
+        callbackName +
+        "&t=" +
+        new Date().getTime();
+
+
+    script.onerror =
+        function() {
 
             console.error(
-                "Error al cargar las citas:",
-                error
+                "No se han podido cargar las citas."
             );
-        });
+
+            delete window[callbackName];
+
+            script.remove();
+        };
+
+
+    document.body.appendChild(script);
 }
 
-
-// -----------------------------
-// CREAR PARTICIPANTES
-// -----------------------------
 
 function createParticipants(count) {
 
     const participants = [];
 
 
-    for (let i = 0; i < count; i++) {
+    for (
+        let i = 0;
+        i < count;
+        i++
+    ) {
 
         participants.push({});
     }
@@ -299,9 +354,9 @@ function createParticipants(count) {
 }
 
 
-// -----------------------------
+// ------------------------------------
 // NAVEGACIÓN
-// -----------------------------
+// ------------------------------------
 
 previousWeekButton.addEventListener(
     "click",
@@ -329,9 +384,9 @@ nextWeekButton.addEventListener(
 );
 
 
-// -----------------------------
+// ------------------------------------
 // ABRIR RESERVA
-// -----------------------------
+// ------------------------------------
 
 function openBooking(dayElement) {
 
@@ -360,9 +415,9 @@ function openBooking(dayElement) {
 }
 
 
-// -----------------------------
+// ------------------------------------
 // CERRAR RESERVA
-// -----------------------------
+// ------------------------------------
 
 function closeBooking() {
 
@@ -390,30 +445,30 @@ window.addEventListener(
 );
 
 
-// -----------------------------
+// ------------------------------------
 // BOTONES APUNTARME
-// -----------------------------
+// ------------------------------------
 
-document
-    .querySelectorAll(".join-button")
-    .forEach(function(button) {
+document.querySelectorAll(
+    ".join-button"
+).forEach(function(button) {
 
-        button.addEventListener(
-            "click",
-            function() {
+    button.addEventListener(
+        "click",
+        function() {
 
-                const dayElement =
-                    button.closest(".day");
+            const dayElement =
+                button.closest(".day");
 
-                openBooking(dayElement);
-            }
-        );
-    });
+            openBooking(dayElement);
+        }
+    );
+});
 
 
-// -----------------------------
-// ENVIAR RESERVA A GOOGLE SHEETS
-// -----------------------------
+// ------------------------------------
+// RESERVA
+// ------------------------------------
 
 bookingForm.addEventListener(
     "submit",
@@ -423,31 +478,27 @@ bookingForm.addEventListener(
 
 
         const studentName =
-            document
-                .getElementById("studentName")
-                .value
-                .trim();
+            document.getElementById(
+                "studentName"
+            ).value.trim();
 
 
         const email =
-            document
-                .getElementById("email")
-                .value
-                .trim();
+            document.getElementById(
+                "email"
+            ).value.trim();
 
 
         const phone =
-            document
-                .getElementById("phone")
-                .value
-                .trim();
+            document.getElementById(
+                "phone"
+            ).value.trim();
 
 
         const topic =
-            document
-                .getElementById("topic")
-                .value
-                .trim();
+            document.getElementById(
+                "topic"
+            ).value.trim();
 
 
         const appointment =
@@ -470,170 +521,244 @@ bookingForm.addEventListener(
         }
 
 
-        const reservationData = {
-
-            appointmentId:
-                selectedAppointment.id,
-
-            studentName:
-                studentName,
-
-            email:
-                email,
-
-            phone:
-                phone,
-
-            topic:
-                topic
-        };
-
-
         const confirmButton =
             bookingForm.querySelector(
                 ".confirm-button"
             );
 
 
-        confirmButton.disabled = true;
+        confirmButton.disabled =
+            true;
+
 
         confirmButton.textContent =
             "Guardando...";
 
 
-        fetch(
-            APPS_SCRIPT_URL,
-            {
-                method: "POST",
+        // --------------------------------
+        // FORMULARIO OCULTO
+        // Evita el problema CORS
+        // --------------------------------
 
-                body:
-                    JSON.stringify(
-                        reservationData
-                    )
-            }
-        )
+        const iframe =
+            document.createElement("iframe");
 
-        .then(function(response) {
 
-            return response.json();
-        })
+        iframe.name =
+            "studyClubBookingFrame";
 
-        .then(function(result) {
 
-            if (!result.success) {
+        iframe.style.display =
+            "none";
+
+
+        document.body.appendChild(
+            iframe
+        );
+
+
+        const form =
+            document.createElement("form");
+
+
+        form.method =
+            "POST";
+
+
+        form.action =
+            APPS_SCRIPT_URL;
+
+
+        form.target =
+            "studyClubBookingFrame";
+
+
+        form.style.display =
+            "none";
+
+
+        addHiddenField(
+            form,
+            "appointmentId",
+            selectedAppointment.id
+        );
+
+
+        addHiddenField(
+            form,
+            "studentName",
+            studentName
+        );
+
+
+        addHiddenField(
+            form,
+            "email",
+            email
+        );
+
+
+        addHiddenField(
+            form,
+            "phone",
+            phone
+        );
+
+
+        addHiddenField(
+            form,
+            "topic",
+            topic
+        );
+
+
+        document.body.appendChild(
+            form
+        );
+
+
+        form.submit();
+
+
+        // --------------------------------
+        // CONFIRMACIÓN
+        // --------------------------------
+
+        setTimeout(
+            function() {
+
+                appointment.participants.push({
+
+                    name:
+                        studentName,
+
+                    email:
+                        email,
+
+                    phone:
+                        phone,
+
+                    topic:
+                        topic
+                });
+
+
+                if (
+                    appointment.participants.length === 1
+                ) {
+
+                    appointment.name =
+                        topic;
+                }
+
+
+                const dayElement =
+                    document.querySelector(
+                        '.day[data-appointment-id="' +
+                        selectedAppointment.id +
+                        '"]'
+                    );
+
+
+                updateAppointmentDisplay(
+                    dayElement
+                );
+
+
+                const confirmedDate =
+                    selectedAppointment.date;
+
+
+                const confirmedTime =
+                    selectedAppointment.time;
+
+
+                bookingForm.reset();
+
+                closeBooking();
+
 
                 alert(
-                    result.message ||
-                    "No se ha podido realizar la reserva."
-                );
-
-                return;
-            }
-
-
-            // Actualizar contador local
-
-            appointment.participants.push({
-
-                name:
-                    studentName,
-
-                email:
-                    email,
-
-                phone:
-                    phone,
-
-                topic:
+                    "¡Reserva realizada!\n\n" +
+                    confirmedDate +
+                    "\n" +
+                    confirmedTime +
+                    "\n\n" +
+                    "Alumno: " +
+                    studentName +
+                    "\n" +
+                    "Tema: " +
                     topic
-            });
-
-
-            // Primer tema = nombre público de la cita
-
-            if (
-                appointment.participants.length === 1
-            ) {
-
-                appointment.name =
-                    topic;
-            }
-
-
-            const dayElement =
-                document.querySelector(
-                    '.day[data-appointment-id="' +
-                    selectedAppointment.id +
-                    '"]'
                 );
 
 
-            updateAppointmentDisplay(
-                dayElement
-            );
+                form.remove();
+
+                iframe.remove();
 
 
-            const confirmedDate =
-                selectedAppointment.date;
+                confirmButton.disabled =
+                    false;
 
 
-            const confirmedTime =
-                selectedAppointment.time;
+                confirmButton.textContent =
+                    "Confirmar reserva";
 
 
-            bookingForm.reset();
+                // Volvemos a cargar
+                // las citas reales
 
-            closeBooking();
+                setTimeout(
+                    function() {
 
+                        loadAppointmentsFromGoogle();
 
-            alert(
-                "¡Reserva realizada!\n\n" +
-                confirmedDate +
-                "\n" +
-                confirmedTime +
-                "\n\n" +
-                "Alumno: " +
-                studentName +
-                "\n" +
-                "Tema: " +
-                topic
-            );
+                    },
+                    1000
+                );
 
-
-            // Volver a leer los datos reales de Google Sheets
-
-            loadAppointmentsFromGoogle();
-
-        })
-
-        .catch(function(error) {
-
-            console.error(
-                "Error al guardar la reserva:",
-                error
-            );
+            },
+            1500
+        );
+    }
+);
 
 
-            alert(
-                "Ha ocurrido un error al guardar la reserva. " +
-                "Por favor, inténtalo de nuevo."
-            );
+// ------------------------------------
+// CREAR CAMPO OCULTO
+// ------------------------------------
 
-        })
+function addHiddenField(
+    form,
+    name,
+    value
+) {
 
-        .finally(function() {
-
-            confirmButton.disabled = false;
-
-            confirmButton.textContent =
-                "Confirmar reserva";
-        });
-    });
+    const input =
+        document.createElement("input");
 
 
-// -----------------------------
+    input.type =
+        "hidden";
+
+
+    input.name =
+        name;
+
+
+    input.value =
+        value;
+
+
+    form.appendChild(
+        input
+    );
+}
+
+
+// ------------------------------------
 // INICIO
-// -----------------------------
+// ------------------------------------
 
 updateWeek();
 
