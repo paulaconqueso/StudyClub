@@ -24,15 +24,12 @@ function getMonday(offset) {
     const today = new Date();
     const day = today.getDay();
 
-    const difference =
-        day === 0 ? -6 : 1 - day;
+    const difference = day === 0 ? -6 : 1 - day;
 
     const monday = new Date(today);
 
     monday.setDate(
-        today.getDate() +
-        difference +
-        (offset * 7)
+        today.getDate() + difference + (offset * 7)
     );
 
     monday.setHours(0, 0, 0, 0);
@@ -43,14 +40,9 @@ function getMonday(offset) {
 
 function formatDate(date) {
 
-    const day =
-        String(date.getDate()).padStart(2, "0");
-
-    const month =
-        String(date.getMonth() + 1).padStart(2, "0");
-
-    const year =
-        date.getFullYear();
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
 
     return day + "/" + month + "/" + year;
 }
@@ -62,11 +54,9 @@ function formatDate(date) {
 
 function updateWeek() {
 
-    const monday =
-        getMonday(currentWeekOffset);
+    const monday = getMonday(currentWeekOffset);
 
-    const days =
-        document.querySelectorAll(".day");
+    const days = document.querySelectorAll(".day");
 
     const dayNames = [
         "Lunes",
@@ -78,26 +68,21 @@ function updateWeek() {
 
     days.forEach(function(dayElement, index) {
 
-        const date =
-            new Date(monday);
+        const date = new Date(monday);
 
         date.setDate(
             monday.getDate() + index
         );
 
 
-        const formattedDate =
-            formatDate(date);
-
+        const formattedDate = formatDate(date);
 
         const title =
             dayElement.querySelector(".day-title");
 
 
         title.textContent =
-            dayNames[index] +
-            " " +
-            formattedDate;
+            dayNames[index] + " " + formattedDate;
 
 
         dayElement.dataset.date =
@@ -105,8 +90,7 @@ function updateWeek() {
 
 
         const appointmentId =
-            formattedDate +
-            "_20:10";
+            formattedDate + "_20:10";
 
 
         dayElement.dataset.appointmentId =
@@ -124,15 +108,12 @@ function updateWeek() {
         }
 
 
-        updateAppointmentDisplay(
-            dayElement
-        );
+        updateAppointmentDisplay(dayElement);
 
     });
 
 
-    const thursday =
-        new Date(monday);
+    const thursday = new Date(monday);
 
     thursday.setDate(
         monday.getDate() + 3
@@ -162,27 +143,19 @@ function updateAppointmentDisplay(dayElement) {
 
 
     const nameElement =
-        dayElement.querySelector(
-            ".appointment-name"
-        );
+        dayElement.querySelector(".appointment-name");
 
 
     const countElement =
-        dayElement.querySelector(
-            ".participant-count"
-        );
+        dayElement.querySelector(".participant-count");
 
 
     const placesElement =
-        dayElement.querySelector(
-            ".places"
-        );
+        dayElement.querySelector(".places");
 
 
     const button =
-        dayElement.querySelector(
-            ".join-button"
-        );
+        dayElement.querySelector(".join-button");
 
 
     const count =
@@ -212,8 +185,7 @@ function updateAppointmentDisplay(dayElement) {
     if (places > 0) {
 
         placesElement.textContent =
-            places +
-            " plazas disponibles";
+            places + " plazas disponibles";
 
         button.textContent =
             "Apuntarme";
@@ -309,7 +281,7 @@ function loadAppointmentsFromGoogle() {
 
 
 // -----------------------------
-// CREAR PARTICIPANTES TEMPORALES
+// CREAR PARTICIPANTES
 // -----------------------------
 
 function createParticipants(count) {
@@ -440,7 +412,7 @@ document
 
 
 // -----------------------------
-// FORMULARIO
+// ENVIAR RESERVA A GOOGLE SHEETS
 // -----------------------------
 
 bookingForm.addEventListener(
@@ -498,18 +470,12 @@ bookingForm.addEventListener(
         }
 
 
-        if (
-            appointment.participants.length === 0
-        ) {
+        const reservationData = {
 
-            appointment.name =
-                topic;
-        }
+            appointmentId:
+                selectedAppointment.id,
 
-
-        appointment.participants.push({
-
-            name:
+            studentName:
                 studentName,
 
             email:
@@ -520,49 +486,149 @@ bookingForm.addEventListener(
 
             topic:
                 topic
-        });
+        };
 
 
-        const dayElement =
-            document.querySelector(
-                '.day[data-appointment-id="' +
-                selectedAppointment.id +
-                '"]'
+        const confirmButton =
+            bookingForm.querySelector(
+                ".confirm-button"
             );
 
 
-        updateAppointmentDisplay(
-            dayElement
-        );
+        confirmButton.disabled = true;
+
+        confirmButton.textContent =
+            "Guardando...";
 
 
-        const confirmedDate =
-            selectedAppointment.date;
+        fetch(
+            APPS_SCRIPT_URL,
+            {
+                method: "POST",
+
+                body:
+                    JSON.stringify(
+                        reservationData
+                    )
+            }
+        )
+
+        .then(function(response) {
+
+            return response.json();
+        })
+
+        .then(function(result) {
+
+            if (!result.success) {
+
+                alert(
+                    result.message ||
+                    "No se ha podido realizar la reserva."
+                );
+
+                return;
+            }
 
 
-        const confirmedTime =
-            selectedAppointment.time;
+            // Actualizar contador local
+
+            appointment.participants.push({
+
+                name:
+                    studentName,
+
+                email:
+                    email,
+
+                phone:
+                    phone,
+
+                topic:
+                    topic
+            });
 
 
-        bookingForm.reset();
+            // Primer tema = nombre público de la cita
 
-        closeBooking();
+            if (
+                appointment.participants.length === 1
+            ) {
+
+                appointment.name =
+                    topic;
+            }
 
 
-        alert(
-            "¡Reserva realizada!\n\n" +
-            confirmedDate +
-            "\n" +
-            confirmedTime +
-            "\n\n" +
-            "Alumno: " +
-            studentName +
-            "\n" +
-            "Tema: " +
-            topic
-        );
-    }
-);
+            const dayElement =
+                document.querySelector(
+                    '.day[data-appointment-id="' +
+                    selectedAppointment.id +
+                    '"]'
+                );
+
+
+            updateAppointmentDisplay(
+                dayElement
+            );
+
+
+            const confirmedDate =
+                selectedAppointment.date;
+
+
+            const confirmedTime =
+                selectedAppointment.time;
+
+
+            bookingForm.reset();
+
+            closeBooking();
+
+
+            alert(
+                "¡Reserva realizada!\n\n" +
+                confirmedDate +
+                "\n" +
+                confirmedTime +
+                "\n\n" +
+                "Alumno: " +
+                studentName +
+                "\n" +
+                "Tema: " +
+                topic
+            );
+
+
+            // Volver a leer los datos reales de Google Sheets
+
+            loadAppointmentsFromGoogle();
+
+        })
+
+        .catch(function(error) {
+
+            console.error(
+                "Error al guardar la reserva:",
+                error
+            );
+
+
+            alert(
+                "Ha ocurrido un error al guardar la reserva. " +
+                "Por favor, inténtalo de nuevo."
+            );
+
+        })
+
+        .finally(function() {
+
+            confirmButton.disabled = false;
+
+            confirmButton.textContent =
+                "Confirmar reserva";
+        });
+    });
 
 
 // -----------------------------
