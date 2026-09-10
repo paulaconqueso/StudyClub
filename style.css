@@ -1,0 +1,233 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f6fa;
+    color: #222;
+}
+
+/* HEADER */
+
+header {
+    background: white;
+    padding: 25px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e5e5e5;
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.subtitle {
+    color: #666;
+}
+
+/* MAIN */
+
+main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.welcome {
+    text-align: center;
+    margin-bottom: 35px;
+}
+
+.welcome h1 {
+    font-size: 32px;
+    margin-bottom: 10px;
+}
+
+.welcome p {
+    color: #666;
+}
+
+/* WEEK NAVIGATION */
+
+.week-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.week-navigation button {
+    border: none;
+    background: white;
+    padding: 12px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.week-navigation button:hover {
+    background: #eaeaea;
+}
+
+/* SCHEDULE */
+
+.schedule {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+}
+
+.day {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.day h3 {
+    padding: 18px;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
+
+.appointment {
+    padding: 20px;
+    text-align: center;
+}
+
+.time {
+    font-weight: bold;
+    font-size: 17px;
+    margin-bottom: 15px;
+}
+
+.appointment-name {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.participants {
+    color: #666;
+    margin-bottom: 18px;
+}
+
+.join-button,
+.confirm-button {
+    border: none;
+    border-radius: 8px;
+    padding: 12px 18px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.join-button {
+    width: 100%;
+}
+
+.join-button:hover {
+    opacity: 0.85;
+}
+
+/* MODAL */
+
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: white;
+    width: 100%;
+    max-width: 500px;
+    padding: 35px;
+    border-radius: 15px;
+    position: relative;
+}
+
+.modal-content h2 {
+    margin-bottom: 10px;
+}
+
+#selectedAppointment {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+.close-button {
+    position: absolute;
+    right: 15px;
+    top: 12px;
+    border: none;
+    background: none;
+    font-size: 28px;
+    cursor: pointer;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+form label {
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+form input {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 7px;
+    font-size: 16px;
+}
+
+.confirm-button {
+    margin-top: 20px;
+    width: 100%;
+}
+
+/* FOOTER */
+
+footer {
+    text-align: center;
+    padding: 30px;
+    color: #777;
+}
+
+/* MOBILE */
+
+@media (max-width: 800px) {
+
+    header {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+    }
+
+    .schedule {
+        grid-template-columns: 1fr;
+    }
+
+    .week-navigation {
+        gap: 10px;
+    }
+
+    .week-navigation h2 {
+        font-size: 16px;
+        text-align: center;
+    }
+}
