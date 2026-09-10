@@ -1,4 +1,3 @@
-```javascript
 const modal = document.getElementById("bookingModal");
 const bookingForm = document.getElementById("bookingForm");
 const closeModalButton = document.getElementById("closeModal");
@@ -12,35 +11,20 @@ let selectedAppointment = null;
 
 
 // -----------------------------
-// DATOS TEMPORALES
-// -----------------------------
-
-const appointmentData = {};
-
-
-// -----------------------------
 // FECHAS
 // -----------------------------
 
 function getMonday(offset) {
 
-    if (offset === undefined) {
-        offset = 0;
-    }
-
     const today = new Date();
-
     const day = today.getDay();
 
-    const difference =
-        day === 0 ? -6 : 1 - day;
+    const difference = day === 0 ? -6 : 1 - day;
 
     const monday = new Date(today);
 
     monday.setDate(
-        today.getDate() +
-        difference +
-        (offset * 7)
+        today.getDate() + difference + (offset * 7)
     );
 
     monday.setHours(0, 0, 0, 0);
@@ -51,22 +35,11 @@ function getMonday(offset) {
 
 function formatDate(date) {
 
-    const day =
-        String(date.getDate()).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
 
-    const month =
-        String(date.getMonth() + 1).padStart(2, "0");
-
-    const year =
-        date.getFullYear();
-
-    return (
-        day +
-        "/" +
-        month +
-        "/" +
-        year
-    );
+    return day + "/" + month + "/" + year;
 }
 
 
@@ -76,11 +49,9 @@ function formatDate(date) {
 
 function updateWeek() {
 
-    const monday =
-        getMonday(currentWeekOffset);
+    const monday = getMonday(currentWeekOffset);
 
-    const days =
-        document.querySelectorAll(".day");
+    const days = document.querySelectorAll(".day");
 
     const dayNames = [
         "Lunes",
@@ -92,62 +63,34 @@ function updateWeek() {
 
     days.forEach(function(dayElement, index) {
 
-        const date =
-            new Date(monday);
+        const date = new Date(monday);
 
         date.setDate(
             monday.getDate() + index
         );
 
 
-        const formattedDate =
-            formatDate(date);
-
+        const formattedDate = formatDate(date);
 
         const title =
             dayElement.querySelector(".day-title");
 
 
         title.textContent =
-            dayNames[index] +
-            " " +
-            formattedDate;
+            dayNames[index] + " " + formattedDate;
 
 
         dayElement.dataset.date =
             formattedDate;
 
 
-        const appointmentId =
-            formattedDate +
-            "_20:10";
-
-
         dayElement.dataset.appointmentId =
-            appointmentId;
-
-
-        if (!appointmentData[appointmentId]) {
-
-            appointmentData[appointmentId] = {
-
-                name: "Disponible",
-
-                participants: []
-            };
-        }
-
-
-        updateAppointmentDisplay(
-            dayElement
-        );
+            formattedDate + "_20:10";
 
     });
 
 
-    const thursday =
-        new Date(monday);
-
+    const thursday = new Date(monday);
 
     thursday.setDate(
         monday.getDate() + 3
@@ -159,110 +102,6 @@ function updateWeek() {
         formatDate(monday) +
         " al " +
         formatDate(thursday);
-}
-
-
-// -----------------------------
-// ACTUALIZAR TARJETA
-// -----------------------------
-
-function updateAppointmentDisplay(dayElement) {
-
-    const appointmentId =
-        dayElement.dataset.appointmentId;
-
-
-    const appointment =
-        appointmentData[appointmentId];
-
-
-    const nameElement =
-        dayElement.querySelector(
-            ".appointment-name"
-        );
-
-
-    const countElement =
-        dayElement.querySelector(
-            ".participant-count"
-        );
-
-
-    const placesElement =
-        dayElement.querySelector(
-            ".places"
-        );
-
-
-    const button =
-        dayElement.querySelector(
-            ".join-button"
-        );
-
-
-    const count =
-        appointment.participants.length;
-
-
-    // -----------------------------
-    // NOMBRE DE LA CITA
-    // -----------------------------
-
-    if (count === 0) {
-
-        nameElement.textContent =
-            "Disponible";
-
-    } else {
-
-        nameElement.textContent =
-            appointment.name;
-    }
-
-
-    // -----------------------------
-    // PARTICIPANTES
-    // -----------------------------
-
-    countElement.textContent =
-        count + " / 6";
-
-
-    // -----------------------------
-    // PLAZAS
-    // -----------------------------
-
-    const places =
-        6 - count;
-
-
-    if (places > 0) {
-
-        placesElement.textContent =
-            places +
-            " plazas disponibles";
-
-
-        button.textContent =
-            "Apuntarme";
-
-
-        button.disabled =
-            false;
-
-    } else {
-
-        placesElement.textContent =
-            "Cita completa";
-
-
-        button.textContent =
-            "Completa";
-
-
-        button.disabled =
-            true;
-    }
 }
 
 
@@ -298,34 +137,25 @@ nextWeekButton.addEventListener(
 
 function openBooking(dayElement) {
 
-    const date =
-        dayElement.dataset.date;
-
-
-    const appointmentId =
-        dayElement.dataset.appointmentId;
-
-
     selectedAppointment = {
 
-        id: appointmentId,
+        date: dayElement.dataset.date,
 
-        date: date,
+        time: "20:10 - 20:40",
 
-        time: "20:10 - 20:40"
+        id: dayElement.dataset.appointmentId
     };
 
 
     document.getElementById(
         "selectedAppointment"
     ).textContent =
-        date +
-        " · 20:10 - 20:40";
+        selectedAppointment.date +
+        " · " +
+        selectedAppointment.time;
 
 
-    modal.classList.remove(
-        "hidden"
-    );
+    modal.classList.remove("hidden");
 }
 
 
@@ -335,13 +165,9 @@ function openBooking(dayElement) {
 
 function closeBooking() {
 
-    modal.classList.add(
-        "hidden"
-    );
+    modal.classList.add("hidden");
 
-
-    selectedAppointment =
-        null;
+    selectedAppointment = null;
 }
 
 
@@ -378,10 +204,7 @@ document
                 const dayElement =
                     button.closest(".day");
 
-
-                openBooking(
-                    dayElement
-                );
+                openBooking(dayElement);
             }
         );
     });
@@ -426,114 +249,15 @@ bookingForm.addEventListener(
                 .trim();
 
 
-        const appointment =
-            appointmentData[
-                selectedAppointment.id
-            ];
-
-
-        // -----------------------------
-        // COMPROBAR PLAZAS
-        // -----------------------------
-
-        if (
-            appointment.participants.length >= 6
-        ) {
-
-            alert(
-                "Lo sentimos, esta cita está completa."
-            );
-
-
-            closeBooking();
-
-            return;
-        }
-
-
-        // -----------------------------
-        // PRIMER TEMA
-        // -----------------------------
-
-        if (
-            appointment.participants.length === 0
-        ) {
-
-            appointment.name =
-                topic;
-        }
-
-
-        // -----------------------------
-        // GUARDAR PARTICIPANTE
-        // -----------------------------
-
-        appointment.participants.push({
-
-            name: studentName,
-
-            email: email,
-
-            phone: phone,
-
-            topic: topic
-        });
-
-
-        // -----------------------------
-        // ACTUALIZAR TARJETA
-        // -----------------------------
-
-        const dayElement =
-            document.querySelector(
-                '.day[data-appointment-id="' +
-                selectedAppointment.id +
-                '"]'
-            );
-
-
-        updateAppointmentDisplay(
-            dayElement
+        alert(
+            "Formulario preparado.\n\n" +
+            "Próximamente se conectará con Google Sheets."
         );
 
-
-        // -----------------------------
-        // GUARDAR DATOS DEL MENSAJE
-        // -----------------------------
-
-        const confirmedDate =
-            selectedAppointment.date;
-
-
-        const confirmedTime =
-            selectedAppointment.time;
-
-
-        // -----------------------------
-        // LIMPIAR Y CERRAR
-        // -----------------------------
 
         bookingForm.reset();
 
         closeBooking();
-
-
-        // -----------------------------
-        // CONFIRMACIÓN
-        // -----------------------------
-
-        alert(
-            "¡Reserva realizada!\n\n" +
-            confirmedDate +
-            "\n" +
-            confirmedTime +
-            "\n\n" +
-            "Alumno: " +
-            studentName +
-            "\n" +
-            "Tema: " +
-            topic
-        );
     }
 );
 
@@ -543,4 +267,3 @@ bookingForm.addEventListener(
 // -----------------------------
 
 updateWeek();
-```
