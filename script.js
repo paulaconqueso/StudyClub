@@ -1,3 +1,4 @@
+```javascript
 const modal = document.getElementById("bookingModal");
 const bookingForm = document.getElementById("bookingForm");
 const closeModalButton = document.getElementById("closeModal");
@@ -77,7 +78,8 @@ function updateWeek() {
 
         const formattedDate = formatDate(date);
 
-        const title = dayElement.querySelector(".day-title");
+        const title =
+            dayElement.querySelector(".day-title");
 
         title.textContent =
             `${dayNames[index]} ${formattedDate}`;
@@ -91,14 +93,15 @@ function updateWeek() {
         dayElement.dataset.appointmentId =
             appointmentId;
 
+
         if (!appointmentData[appointmentId]) {
 
             appointmentData[appointmentId] = {
                 name: "Disponible",
                 participants: []
             };
-
         }
+
 
         updateAppointmentDisplay(dayElement);
     });
@@ -158,16 +161,17 @@ function updateAppointmentDisplay(dayElement) {
     }
 
 
-    // Participantes
+    // Número de participantes
 
     countElement.textContent =
         `${count} / 6`;
 
 
-    // Plazas
+    // Plazas disponibles
 
     const places =
         6 - count;
+
 
     if (places > 0) {
 
@@ -189,40 +193,6 @@ function updateAppointmentDisplay(dayElement) {
 
         button.disabled = true;
     }
-
-
-    // Lista de nombres
-
-    let participantList =
-        dayElement.querySelector(".participant-list");
-
-    if (!participantList) {
-
-        participantList =
-            document.createElement("div");
-
-        participantList.className =
-            "participant-list";
-
-        dayElement
-            .querySelector(".appointment")
-            .appendChild(participantList);
-    }
-
-
-    participantList.innerHTML = "";
-
-
-    appointment.participants.forEach(function(participant) {
-
-        const name =
-            document.createElement("div");
-
-        name.textContent =
-            participant.name;
-
-        participantList.appendChild(name);
-    });
 }
 
 
@@ -264,7 +234,9 @@ function openBooking(dayElement) {
     const appointmentId =
         dayElement.dataset.appointmentId;
 
+
     selectedAppointment = {
+
         id: appointmentId,
         date: date,
         time: "20:10 - 20:40"
@@ -344,16 +316,28 @@ bookingForm.addEventListener(
 
 
         const studentName =
-            document.getElementById("studentName").value.trim();
+            document
+                .getElementById("studentName")
+                .value
+                .trim();
 
         const email =
-            document.getElementById("email").value.trim();
+            document
+                .getElementById("email")
+                .value
+                .trim();
 
         const phone =
-            document.getElementById("phone").value.trim();
+            document
+                .getElementById("phone")
+                .value
+                .trim();
 
         const topic =
-            document.getElementById("topic").value.trim();
+            document
+                .getElementById("topic")
+                .value
+                .trim();
 
 
         const appointment =
@@ -374,8 +358,8 @@ bookingForm.addEventListener(
         }
 
 
-        // Si es el primer alumno,
-        // su tema se convierte en el nombre de la cita
+        // Guardamos el nombre del tema
+        // solamente para la tarjeta pública
 
         if (appointment.participants.length === 0) {
 
@@ -383,7 +367,7 @@ bookingForm.addEventListener(
         }
 
 
-        // Añadir participante
+        // Guardamos los datos temporalmente
 
         appointment.participants.push({
 
@@ -394,7 +378,7 @@ bookingForm.addEventListener(
         });
 
 
-        // Buscar tarjeta correspondiente
+        // Actualizar la tarjeta
 
         const dayElement =
             document.querySelector(
@@ -405,19 +389,29 @@ bookingForm.addEventListener(
         updateAppointmentDisplay(dayElement);
 
 
-        // Cerrar formulario
+        // Guardamos los datos necesarios
+        // antes de cerrar la reserva
+
+        const confirmedDate =
+            selectedAppointment.date;
+
+        const confirmedTime =
+            selectedAppointment.time;
+
+
+        // Limpiar formulario
 
         bookingForm.reset();
 
         closeBooking();
 
 
-        // Mensaje de confirmación
+        // Confirmación
 
         alert(
             `¡Reserva realizada!\n\n` +
-            `${selectedAppointment.date}\n` +
-            `${selectedAppointment.time}\n\n` +
+            `${confirmedDate}\n` +
+            `${confirmedTime}\n\n` +
             `Alumno: ${studentName}\n` +
             `Tema: ${topic}`
         );
@@ -430,3 +424,4 @@ bookingForm.addEventListener(
 // -----------------------------
 
 updateWeek();
+```
