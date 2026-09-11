@@ -22,10 +22,7 @@ const weekTitle =
 
 
 let currentWeekOffset = 0;
-
 let selectedAppointment = null;
-
-const appointmentData = {};
 
 
 // ====================================
@@ -36,16 +33,14 @@ function getMonday(offset) {
 
     const today = new Date();
 
-    const day =
-        today.getDay();
+    const day = today.getDay();
 
     const difference =
         day === 0
             ? -6
             : 1 - day;
 
-    const monday =
-        new Date(today);
+    const monday = new Date(today);
 
     monday.setDate(
         today.getDate() +
@@ -53,12 +48,7 @@ function getMonday(offset) {
         (offset * 7)
     );
 
-    monday.setHours(
-        0,
-        0,
-        0,
-        0
-    );
+    monday.setHours(0, 0, 0, 0);
 
     return monday;
 }
@@ -67,14 +57,10 @@ function getMonday(offset) {
 function formatDate(date) {
 
     const day =
-        String(
-            date.getDate()
-        ).padStart(2, "0");
+        String(date.getDate()).padStart(2, "0");
 
     const month =
-        String(
-            date.getMonth() + 1
-        ).padStart(2, "0");
+        String(date.getMonth() + 1).padStart(2, "0");
 
     const year =
         date.getFullYear();
@@ -96,16 +82,10 @@ function formatDate(date) {
 function updateWeek() {
 
     const monday =
-        getMonday(
-            currentWeekOffset
-        );
-
+        getMonday(currentWeekOffset);
 
     const days =
-        document.querySelectorAll(
-            ".day"
-        );
-
+        document.querySelectorAll(".day");
 
     const dayNames = [
         "Lunes",
@@ -114,89 +94,49 @@ function updateWeek() {
         "Jueves"
     ];
 
+    days.forEach(function(dayElement, index) {
 
-    days.forEach(
-        function(
+        const date =
+            new Date(monday);
+
+        date.setDate(
+            monday.getDate() + index
+        );
+
+        const formattedDate =
+            formatDate(date);
+
+        const title =
+            dayElement.querySelector(".day-title");
+
+        title.textContent =
+            dayNames[index] +
+            " " +
+            formattedDate;
+
+        dayElement.dataset.date =
+            formattedDate;
+
+        const appointmentId =
+            formattedDate + "_20:10";
+
+        dayElement.dataset.appointmentId =
+            appointmentId;
+
+        updateAppointmentDisplay(
             dayElement,
-            index
-        ) {
+            null
+        );
 
-            const date =
-                new Date(monday);
-
-
-            date.setDate(
-                monday.getDate() +
-                index
-            );
-
-
-            const formattedDate =
-                formatDate(date);
-
-
-            const title =
-                dayElement.querySelector(
-                    ".day-title"
-                );
-
-
-            title.textContent =
-                dayNames[index] +
-                " " +
-                formattedDate;
-
-
-            dayElement.dataset.date =
-                formattedDate;
-
-
-            const appointmentId =
-                formattedDate +
-                "_20:10";
-
-
-            dayElement.dataset.appointmentId =
-                appointmentId;
-
-
-            if (
-                !appointmentData[
-                    appointmentId
-                ]
-            ) {
-
-                appointmentData[
-                    appointmentId
-                ] = {
-
-                    name:
-                        "Disponible",
-
-                    participants:
-                        []
-
-                };
-
-            }
-
-
-            updateAppointmentDisplay(
-                dayElement
-            );
-
-        }
-    );
+    });
 
 
     const thursday =
         new Date(monday);
 
-
     thursday.setDate(
         monday.getDate() + 3
     );
-
 
     weekTitle.textContent =
         "Semana del " +
@@ -211,41 +151,24 @@ function updateWeek() {
 // ====================================
 
 function updateAppointmentDisplay(
-    dayElement
+    dayElement,
+    appointment
 ) {
-
-    const appointmentId =
-        dayElement.dataset.appointmentId;
-
-
-    const appointment =
-        appointmentData[
-            appointmentId
-        ];
-
-
-    if (!appointment) {
-        return;
-    }
-
 
     const nameElement =
         dayElement.querySelector(
             ".appointment-name"
         );
 
-
     const countElement =
         dayElement.querySelector(
             ".participant-count"
         );
 
-
     const placesElement =
         dayElement.querySelector(
             ".places"
         );
-
 
     const button =
         dayElement.querySelector(
@@ -253,8 +176,31 @@ function updateAppointmentDisplay(
         );
 
 
+    if (!appointment) {
+
+        nameElement.textContent =
+            "Disponible";
+
+        countElement.textContent =
+            "0 / 6";
+
+        placesElement.textContent =
+            "6 plazas disponibles";
+
+        button.textContent =
+            "Apuntarme";
+
+        button.disabled =
+            false;
+
+        return;
+    }
+
+
     const count =
-        appointment.participants.length;
+        Number(
+            appointment.participantes
+        ) || 0;
 
 
     if (count === 0) {
@@ -265,13 +211,14 @@ function updateAppointmentDisplay(
     } else {
 
         nameElement.textContent =
-            appointment.name;
+            appointment.nombre ||
+            "Disponible";
+
     }
 
 
     countElement.textContent =
-        count +
-        " / 6";
+        count + " / 6";
 
 
     const places =
@@ -313,11 +260,18 @@ function updateAppointmentDisplay(
 function loadAppointmentsFromGoogle() {
 
     const callbackName =
-        "studyClubAppointmentsCallback";
+        "studyClubAppointmentsCallback_" +
+        Date.now();
 
 
     window[callbackName] =
         function(appointments) {
+
+            console.log(
+                "Citas recibidas:",
+                appointments
+            );
+
 
             appointments.forEach(
                 function(appointment) {
@@ -326,24 +280,6 @@ function loadAppointmentsFromGoogle() {
                         String(
                             appointment.id
                         );
-
-
-                    appointmentData[
-                        appointmentId
-                    ] = {
-
-                        name:
-                            appointment.nombre ||
-                            "Disponible",
-
-                        participants:
-                            createParticipants(
-                                Number(
-                                    appointment.participantes
-                                ) || 0
-                            )
-
-                    };
 
 
                     const dayElement =
@@ -357,7 +293,8 @@ function loadAppointmentsFromGoogle() {
                     if (dayElement) {
 
                         updateAppointmentDisplay(
-                            dayElement
+                            dayElement,
+                            appointment
                         );
 
                     }
@@ -366,34 +303,27 @@ function loadAppointmentsFromGoogle() {
             );
 
 
-            delete window[
-                callbackName
-            ];
+            delete window[callbackName];
 
 
-            const oldScript =
+            const script =
                 document.getElementById(
-                    "studyClubDataScript"
+                    callbackName
                 );
 
-
-            if (oldScript) {
-
-                oldScript.remove();
-
+            if (script) {
+                script.remove();
             }
 
         };
 
 
     const script =
-        document.createElement(
-            "script"
-        );
+        document.createElement("script");
 
 
     script.id =
-        "studyClubDataScript";
+        callbackName;
 
 
     script.src =
@@ -402,7 +332,7 @@ function loadAppointmentsFromGoogle() {
         "&callback=" +
         callbackName +
         "&t=" +
-        new Date().getTime();
+        Date.now();
 
 
     script.onerror =
@@ -412,40 +342,14 @@ function loadAppointmentsFromGoogle() {
                 "No se han podido cargar las citas."
             );
 
-
-            delete window[
-                callbackName
-            ];
-
+            delete window[callbackName];
 
             script.remove();
 
         };
 
 
-    document.body.appendChild(
-        script
-    );
-}
-
-
-function createParticipants(count) {
-
-    const participants = [];
-
-
-    for (
-        let i = 0;
-        i < count;
-        i++
-    ) {
-
-        participants.push({});
-
-    }
-
-
-    return participants;
+    document.body.appendChild(script);
 }
 
 
@@ -485,9 +389,7 @@ nextWeekButton.addEventListener(
 // ABRIR RESERVA
 // ====================================
 
-function openBooking(
-    dayElement
-) {
+function openBooking(dayElement) {
 
     selectedAppointment = {
 
@@ -511,9 +413,7 @@ function openBooking(
         selectedAppointment.time;
 
 
-    modal.classList.remove(
-        "hidden"
-    );
+    modal.classList.remove("hidden");
 }
 
 
@@ -523,12 +423,10 @@ function openBooking(
 
 function closeBooking() {
 
-    modal.classList.add(
-        "hidden"
-    );
+    modal.classList.add("hidden");
 
-    selectedAppointment =
-        null;
+    selectedAppointment = null;
+
 }
 
 
@@ -542,9 +440,7 @@ window.addEventListener(
     "click",
     function(event) {
 
-        if (
-            event.target === modal
-        ) {
+        if (event.target === modal) {
 
             closeBooking();
 
@@ -567,14 +463,14 @@ document.querySelectorAll(
             "click",
             function() {
 
-                const dayElement =
-                    button.closest(
-                        ".day"
-                    );
+                if (button.disabled) {
+                    return;
+                }
 
-                openBooking(
-                    dayElement
-                );
+                const dayElement =
+                    button.closest(".day");
+
+                openBooking(dayElement);
 
             }
         );
@@ -592,6 +488,11 @@ bookingForm.addEventListener(
     function(event) {
 
         event.preventDefault();
+
+
+        if (!selectedAppointment) {
+            return;
+        }
 
 
         const studentName =
@@ -622,32 +523,6 @@ bookingForm.addEventListener(
             selectedAppointment.id;
 
 
-        const appointment =
-            appointmentData[
-                appointmentId
-            ];
-
-
-        // ----------------------------
-        // COMPROBAR PLAZAS
-        // ----------------------------
-
-        if (
-            appointment &&
-            appointment.participants.length >= 6
-        ) {
-
-            alert(
-                "Lo sentimos, esta cita está completa."
-            );
-
-            closeBooking();
-
-            return;
-
-        }
-
-
         const confirmButton =
             bookingForm.querySelector(
                 ".confirm-button"
@@ -662,37 +537,32 @@ bookingForm.addEventListener(
             "Guardando...";
 
 
-        // ----------------------------
-        // CREAR IFRAME OCULTO
-        // ----------------------------
+        // ====================================
+        // IFRAME OCULTO
+        // ====================================
 
         const iframe =
-            document.createElement(
-                "iframe"
-            );
+            document.createElement("iframe");
 
 
         iframe.name =
-            "studyClubBookingFrame";
+            "studyClubBookingFrame_" +
+            Date.now();
 
 
         iframe.style.display =
             "none";
 
 
-        document.body.appendChild(
-            iframe
-        );
+        document.body.appendChild(iframe);
 
 
-        // ----------------------------
-        // CREAR FORMULARIO OCULTO
-        // ----------------------------
+        // ====================================
+        // FORMULARIO OCULTO
+        // ====================================
 
         const form =
-            document.createElement(
-                "form"
-            );
+            document.createElement("form");
 
 
         form.method =
@@ -704,7 +574,7 @@ bookingForm.addEventListener(
 
 
         form.target =
-            "studyClubBookingFrame";
+            iframe.name;
 
 
         form.style.display =
@@ -746,26 +616,24 @@ bookingForm.addEventListener(
         );
 
 
-        document.body.appendChild(
-            form
-        );
+        document.body.appendChild(form);
 
 
-        // ----------------------------
+        // ====================================
         // ENVIAR
-        // ----------------------------
+        // ====================================
 
         form.submit();
 
 
-        // ----------------------------
-        // COMPROBAR DESPUÉS
-        // ----------------------------
+        // ====================================
+        // ESPERAR Y RECARGAR CITAS
+        // ====================================
 
         setTimeout(
             function() {
 
-                checkReservationSaved(
+                checkReservation(
                     appointmentId,
                     studentName,
                     topic,
@@ -775,7 +643,7 @@ bookingForm.addEventListener(
                 );
 
             },
-            2000
+            1500
         );
 
     }
@@ -783,10 +651,10 @@ bookingForm.addEventListener(
 
 
 // ====================================
-// COMPROBAR QUE SE GUARDÓ
+// COMPROBAR RESERVA
 // ====================================
 
-function checkReservationSaved(
+function checkReservation(
     appointmentId,
     studentName,
     topic,
@@ -796,13 +664,14 @@ function checkReservationSaved(
 ) {
 
     const callbackName =
-        "studyClubCheckCallback";
+        "studyClubReservationCheck_" +
+        Date.now();
 
 
     window[callbackName] =
         function(appointments) {
 
-            let savedAppointment =
+            let appointmentFound =
                 null;
 
 
@@ -818,7 +687,7 @@ function checkReservationSaved(
                         )
                     ) {
 
-                        savedAppointment =
+                        appointmentFound =
                             appointment;
 
                     }
@@ -827,62 +696,25 @@ function checkReservationSaved(
             );
 
 
-            const savedCount =
-                savedAppointment
-                    ? Number(
-                        savedAppointment.participantes
-                    )
-                    : 0;
-
-
-            // --------------------------------
-            // RESERVA CONFIRMADA
-            // --------------------------------
-
             if (
-                savedCount > 0
+                appointmentFound &&
+                Number(
+                    appointmentFound.participantes
+                ) > 0
             ) {
 
-                if (
-                    !appointmentData[
-                        appointmentId
-                    ]
-                ) {
+                // --------------------------------
+                // CERRAR MODAL
+                // --------------------------------
 
-                    appointmentData[
-                        appointmentId
-                    ] = {
+                bookingForm.reset();
 
-                        name:
-                            topic,
-
-                        participants:
-                            []
-
-                    };
-
-                }
+                closeBooking();
 
 
-                appointmentData[
-                    appointmentId
-                ].participants.push({
-
-                    name:
-                        studentName,
-
-                    topic:
-                        topic
-
-                });
-
-
-                appointmentData[
-                    appointmentId
-                ].name =
-                    savedAppointment.nombre ||
-                    topic;
-
+                // --------------------------------
+                // ACTUALIZAR INMEDIATAMENTE
+                // --------------------------------
 
                 const dayElement =
                     document.querySelector(
@@ -895,31 +727,24 @@ function checkReservationSaved(
                 if (dayElement) {
 
                     updateAppointmentDisplay(
-                        dayElement
+                        dayElement,
+                        appointmentFound
                     );
 
                 }
 
 
-                const confirmedDate =
-                    selectedAppointment.date;
-
-
-                const confirmedTime =
-                    selectedAppointment.time;
-
-
-                bookingForm.reset();
-
-                closeBooking();
-
+                // --------------------------------
+                // MENSAJE
+                // --------------------------------
 
                 alert(
                     "¡Reserva realizada!\n\n" +
-                    confirmedDate +
-                    "\n" +
-                    confirmedTime +
-                    "\n\n" +
+                    appointmentId.replace(
+                        "_20:10",
+                        ""
+                    ) +
+                    "\n20:10 - 20:40\n\n" +
                     "Alumno: " +
                     studentName +
                     "\n" +
@@ -927,11 +752,8 @@ function checkReservationSaved(
                     topic
                 );
 
-            } else {
 
-                // --------------------------------
-                // NO SE HA GUARDADO
-                // --------------------------------
+            } else {
 
                 alert(
                     "No se ha podido confirmar la reserva.\n\n" +
@@ -945,21 +767,17 @@ function checkReservationSaved(
             // LIMPIAR
             // --------------------------------
 
-            delete window[
-                callbackName
-            ];
+            delete window[callbackName];
 
 
             const oldScript =
                 document.getElementById(
-                    "studyClubCheckScript"
+                    callbackName
                 );
 
 
             if (oldScript) {
-
                 oldScript.remove();
-
             }
 
 
@@ -976,7 +794,9 @@ function checkReservationSaved(
                 "Confirmar reserva";
 
 
-            // Actualizar datos reales
+            // --------------------------------
+            // RECARGAR DATOS REALES
+            // --------------------------------
 
             setTimeout(
                 function() {
@@ -984,20 +804,18 @@ function checkReservationSaved(
                     loadAppointmentsFromGoogle();
 
                 },
-                500
+                300
             );
 
         };
 
 
     const script =
-        document.createElement(
-            "script"
-        );
+        document.createElement("script");
 
 
     script.id =
-        "studyClubCheckScript";
+        callbackName;
 
 
     script.src =
@@ -1006,16 +824,11 @@ function checkReservationSaved(
         "&callback=" +
         callbackName +
         "&t=" +
-        new Date().getTime();
+        Date.now();
 
 
     script.onerror =
         function() {
-
-            console.error(
-                "No se ha podido comprobar la reserva."
-            );
-
 
             alert(
                 "No se ha podido comprobar la reserva. " +
@@ -1023,10 +836,7 @@ function checkReservationSaved(
             );
 
 
-            delete window[
-                callbackName
-            ];
-
+            delete window[callbackName];
 
             script.remove();
 
@@ -1045,9 +855,8 @@ function checkReservationSaved(
         };
 
 
-    document.body.appendChild(
-        script
-    );
+    document.body.appendChild(script);
+
 }
 
 
@@ -1062,9 +871,7 @@ function addHiddenField(
 ) {
 
     const input =
-        document.createElement(
-            "input"
-        );
+        document.createElement("input");
 
 
     input.type =
@@ -1079,9 +886,8 @@ function addHiddenField(
         value;
 
 
-    form.appendChild(
-        input
-    );
+    form.appendChild(input);
+
 }
 
 
